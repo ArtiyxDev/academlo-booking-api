@@ -13,6 +13,8 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - academlo-booking-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
@@ -47,3 +49,9 @@ services:
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  academlo-booking-network:
+    driver: bridge
+  dokploy_network:
+    external: true
