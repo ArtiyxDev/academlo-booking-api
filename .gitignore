@@ -1,40 +1,78 @@
-# dependencies (bun install)
+# Dependencies
 node_modules
+*.pnp
+.pnp.js
 
-# output
-out
+# Build output
 dist
+out
+build
 *.tgz
 
-# code coverage
+# Testing
 coverage
 *.lcov
+.nyc_output
 
-# logs
+# Logs
 logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# dotenv environment variable files
+# Environment variables
 .env
+.env.*
+!.env.example
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
-# caches
-.eslintcache
+# Prisma
+generated/
+/src/generated/
+
+# Caches
 .cache
+.eslintcache
 *.tsbuildinfo
+.turbo
 
-# IntelliJ based IDEs
+# IDEs
 .idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Finder (MacOS) folder config
+# OS
 .DS_Store
+Thumbs.db
 
-/src/generated/prisma
+# Documentation (except main READMEs)
+*.md
+!README.md
+!README.*.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!LICENSE.md
 
-# Local docs
-DOC.md
-backend.spec.md
+# Temporary files
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# Docker
+.dockerignore
