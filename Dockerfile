@@ -24,8 +24,8 @@ RUN pnpm db:generate
 COPY tsconfig.json ./
 COPY src ./src
 
-# Build TypeScript
-RUN pnpm build
+# Build TypeScript (override noEmit)
+RUN npx tsc --noEmit false
 
 # Verify build output
 RUN ls -la dist/
