@@ -45,9 +45,8 @@ services:
       POSTGRES_DB: ${DB_NAME:-academlo_booking}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - booking_network
     healthcheck:
