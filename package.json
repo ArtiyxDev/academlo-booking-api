@@ -2,7 +2,6 @@
   "name": "academlo-booking-api",
   "version": "1.0.0",
   "module": "src/index.ts",
-  "type": "module",
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
