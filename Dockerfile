@@ -18,10 +18,10 @@ COPY prisma ./prisma
 # Create a temporary .env file for build time (prisma generate doesn't actually connect to DB)
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client (generates in src/generated/prisma)
+# Generate Prisma Client (generates in generated/prisma-client from project root)
 RUN pnpm prisma generate
 
-# Copy source code (includes src/generated that we just created)
+# Copy source code
 COPY tsconfig.json ./
 COPY src ./src
 
@@ -48,8 +48,8 @@ RUN pnpm add -D prisma
 # Copy Prisma schema
 COPY prisma ./prisma
 
-# Copy generated Prisma Client from builder
-COPY --from=builder /usr/src/app/src/generated ./src/generated
+# Copy generated Prisma Client from builder (in project root)
+COPY --from=builder /usr/src/app/generated ./generated
 
 # Copy compiled code from builder
 COPY --from=builder /usr/src/app/dist ./dist
