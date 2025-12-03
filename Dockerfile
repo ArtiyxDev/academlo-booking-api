@@ -49,8 +49,8 @@ COPY --from=builder /app/prisma ./prisma
 # Install production dependencies (includes @prisma/client)
 RUN pnpm install --prod
 
-# Generate Prisma Client in production stage
-RUN pnpm db:generate
+# Install prisma CLI temporarily to generate client
+RUN pnpm add -D prisma && pnpm db:generate && pnpm remove prisma
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
