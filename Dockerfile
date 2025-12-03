@@ -39,6 +39,9 @@ COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 # Install production dependencies only
 RUN pnpm install --prod || pnpm install --prod --no-frozen-lockfile
 
+# Install prisma CLI temporarily for migrations
+RUN pnpm add -D prisma
+
 # Copy Prisma schema
 COPY prisma ./prisma
 
