@@ -3,6 +3,10 @@ node_modules
 *.pnp
 .pnp.js
 
+# Playwright
+.playwright/
+.playwright-mcp/
+
 # Build output
 dist
 out
