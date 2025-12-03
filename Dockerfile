@@ -25,7 +25,7 @@ COPY tsconfig.json ./
 COPY src ./src
 
 # Build TypeScript (override noEmit)
-RUN npx tsc --noEmit false
+RUN pnpm build
 
 # Verify build output
 RUN ls -la dist/
