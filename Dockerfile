@@ -1,69 +1,62 @@
-# Etapa 1: Instalación de dependencias
-FROM node:20-alpine AS deps
+# Build stage
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Instalar pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm
+RUN npm install -g pnpm@10.20.0
 
-# Copiar archivos de configuración de pnpm
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml .npmrc ./
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Instalar dependencias
+# Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
 
-# Etapa 2: Builder - Compilar TypeScript
-FROM node:20-alpine AS builder
-WORKDIR /app
+# Copy prisma schema
+COPY prisma ./prisma
 
-# Instalar pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copiar dependencias instaladas
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copiar código fuente
-COPY . .
-
-# Generar Prisma Client
+# Generate Prisma Client
 RUN pnpm db:generate
 
-# Compilar TypeScript
+# Copy source code
+COPY tsconfig.json ./
+COPY src ./src
+
+# Build TypeScript
 RUN pnpm build
 
-# Etapa 3: Producción
-FROM node:20-alpine AS runner
+# Verify build output
+RUN ls -la dist/
+
+# Production stage
+FROM node:20-alpine
+
 WORKDIR /app
 
-# Instalar pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm
+RUN npm install -g pnpm@10.20.0
 
-ENV NODE_ENV=production
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copiar archivos necesarios
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml* ./
-COPY --from=builder /app/.npmrc ./
-COPY --from=builder /app/pnpm-workspace.yaml ./
-
-# Instalar solo dependencias de producción
+# Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
 
-# Copiar archivos compilados
-COPY --from=builder /app/dist ./dist
+# Copy prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
 
-# Copiar Prisma Client generado
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy generated Prisma Client
+COPY --from=builder /app/generated ./generated
 
-# Crear usuario no privilegiado
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nodejs
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
 
-USER nodejs
-
-# Exponer puerto
+# Expose port
 EXPOSE 3000
 
-# Comando de inicio
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start application
 CMD ["node", "dist/index.js"]
