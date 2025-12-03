@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+coverage
+.next
+.nuxt
+.cache
+*.log
+*.lock
+package-lock.json
+bun.lock
+prisma/migrations

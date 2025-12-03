@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+coverage
+.next
+.nuxt
+.cache
+.vscode
+.idea
+*.log
+*.lock
+package-lock.json
+bun.lock
+.env
+.env.*
+!.env.example
+prisma/migrations
