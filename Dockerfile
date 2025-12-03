@@ -46,11 +46,11 @@ COPY pnpm-workspace.yaml* ./
 # Copy prisma schema
 COPY --from=builder /app/prisma ./prisma
 
-# Install production dependencies only
+# Install production dependencies (includes @prisma/client)
 RUN pnpm install --prod
 
-# Copy generated Prisma Client from builder
-COPY --from=builder /app/generated ./generated
+# Generate Prisma Client in production stage
+RUN pnpm db:generate
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
