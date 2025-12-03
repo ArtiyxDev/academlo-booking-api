@@ -49,8 +49,10 @@ RUN pnpm install --prod
 # Copy prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
 
-# Copy generated Prisma Client
+# Copy generated Prisma Client from builder (including all dependencies)
 COPY --from=builder /app/generated ./generated
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
