@@ -18,29 +18,16 @@ RUN \
 FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY prisma.config.ts ./
 COPY . .
 
 # Create temporary .env for Prisma generation
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client
+# Generate Prisma Client and build
 RUN \
   if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm prisma generate && pnpm run build; \
   elif [ -f yarn.lock ]; then yarn prisma generate && yarn build; \
   elif [ -f package-lock.json ]; then npx prisma generate && npm run build; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
-# ==================== PRODUCTION DEPENDENCIES ====================
-FROM base AS prod-deps
-
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
-
-RUN \
-  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --prod --frozen-lockfile; \
-  elif [ -f yarn.lock ]; then yarn install --prod --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci --only=production; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -49,18 +36,16 @@ FROM base AS prod
 
 ENV NODE_ENV=production
 
-# Copy package files first
+# Copy package files
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
-# Install prisma CLI FIRST (before copying anything else)
+# Install production dependencies AND prisma CLI
 RUN \
-  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm add -D prisma; \
-  elif [ -f yarn.lock ]; then yarn add -D prisma; \
-  elif [ -f package-lock.json ]; then npm install -D prisma; \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --prod --frozen-lockfile && pnpm add -D prisma; \
+  elif [ -f yarn.lock ]; then yarn install --prod --frozen-lockfile && yarn add -D prisma; \
+  elif [ -f package-lock.json ]; then npm ci --only=production && npm install -D prisma; \
+  else echo "Lockfile not found." && exit 1; \
   fi
-
-# Now copy production dependencies
-COPY --from=prod-deps /app/node_modules ./node_modules
 
 # Copy application files
 COPY --from=builder /app/dist ./dist
@@ -70,7 +55,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 # Create temporary .env for Prisma generation
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client in production context (now prisma is installed)
+# Generate Prisma Client in production (AFTER prisma CLI is installed)
 RUN \
   if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm prisma generate; \
   elif [ -f yarn.lock ]; then yarn prisma generate; \
