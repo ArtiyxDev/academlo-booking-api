@@ -1,14 +1,17 @@
 FROM node:22-slim
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 WORKDIR /app
 
 COPY . .
 
-RUN npm install
+RUN pnpm install --frozen-lockfile
 RUN echo "DATABASE_URL=postgresql://user:pass@localhost:5432/db" > .env && \
-  npx prisma generate && \
+  pnpm prisma generate && \
   rm .env
-RUN npm run build
+RUN pnpm run build
 
 EXPOSE 8000
-CMD [ "npm", "start" ]
+CMD [ "pnpm", "start" ]
