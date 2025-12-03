@@ -15,6 +15,9 @@ RUN pnpm install || pnpm install --no-frozen-lockfile
 # Copy Prisma schema
 COPY prisma ./prisma
 
+# Copy Prisma config
+COPY prisma.config.ts ./
+
 # Generate Prisma Client (generated in src/generated/prisma)
 RUN pnpm prisma generate
 
@@ -44,6 +47,9 @@ RUN pnpm add -D prisma
 
 # Copy Prisma schema
 COPY prisma ./prisma
+
+# Copy Prisma config
+COPY prisma.config.ts ./
 
 # Copy generated Prisma Client from builder
 COPY --from=builder /usr/src/app/generated ./src/generated
