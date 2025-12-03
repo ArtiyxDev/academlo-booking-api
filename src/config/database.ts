@@ -21,13 +21,7 @@ const pool = new Pool({
   port: Number(databaseUrl.port),
   user: databaseUrl.username,
   password: databaseUrl.password,
-  database: databaseUrl.pathname.slice(1), // Remove leading slash
-  // Only use SSL in production
-  ...(process.env.NODE_ENV === "production" && {
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  }),
+  database: databaseUrl.pathname.slice(1),
 });
 
 const adapter = new PrismaPg(pool);
