@@ -29,5 +29,4 @@ Dockerfile
 .eslintignore
 
 # pnpm
-pnpm-lock.yaml
 .pnpm-debug.log
