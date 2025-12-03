@@ -43,6 +43,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - academlo-booking-network
     volumes:
       - ./prisma:/app/prisma
 
