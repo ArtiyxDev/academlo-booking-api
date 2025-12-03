@@ -15,6 +15,9 @@ RUN pnpm install || pnpm install --no-frozen-lockfile
 # Copy Prisma schema
 COPY prisma ./prisma
 
+# Copy prisma config
+COPY prisma.config.ts ./
+
 # Create a temporary .env file for build time (prisma generate doesn't actually connect to DB)
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
@@ -47,6 +50,9 @@ RUN pnpm add -D prisma
 
 # Copy Prisma schema
 COPY prisma ./prisma
+
+# Copy prisma config
+COPY prisma.config.ts ./
 
 # Copy generated Prisma Client from builder (in project root)
 COPY --from=builder /usr/src/app/generated ./generated
