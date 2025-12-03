@@ -12,7 +12,7 @@ COPY pnpm-lock.yaml* ./
 COPY pnpm-workspace.yaml* ./
 
 # Install all dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy prisma schema
 COPY prisma ./prisma
@@ -44,7 +44,7 @@ COPY pnpm-lock.yaml* ./
 COPY pnpm-workspace.yaml* ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # Copy prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
