@@ -1,7 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../../generated/prisma-client/client";
 import pkg from "pg";
 import dotenv from "dotenv";
-import { PrismaClient } from "@prisma/client/extension";
 
 // Load environment variables first
 dotenv.config();
