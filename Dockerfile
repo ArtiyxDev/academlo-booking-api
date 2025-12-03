@@ -43,16 +43,14 @@ COPY package.json ./
 COPY pnpm-lock.yaml* ./
 COPY pnpm-workspace.yaml* ./
 
+# Copy prisma schema
+COPY --from=builder /app/prisma ./prisma
+
 # Install production dependencies only
 RUN pnpm install --prod
 
-# Copy prisma schema and migrations
-COPY --from=builder /app/prisma ./prisma
-
-# Copy generated Prisma Client from builder (including all dependencies)
+# Copy generated Prisma Client from builder
 COPY --from=builder /app/generated ./generated
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
