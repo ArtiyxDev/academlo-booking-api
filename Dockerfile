@@ -1,54 +1,52 @@
-# Build stage
-FROM node:22-alpine AS builder
+# ==================== BUILD STAGE ====================
+FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Install pnpm globally
+# Enable corepack and pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy dependency files
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
-# Install all dependencies
-RUN pnpm install --frozen-lockfile || pnpm install
+# Install ALL dependencies
+RUN pnpm install || pnpm install --no-frozen-lockfile
 
 # Copy Prisma schema
 COPY prisma ./prisma
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Generate Prisma Client (generated in src/generated/prisma)
+RUN pnpm prisma generate
 
-# Copy source code and tsconfig
+# Copy source code (includes src/generated that we just created)
 COPY tsconfig.json ./
 COPY src ./src
 
 # Build TypeScript
-RUN npx tsc
+RUN pnpm tsc --noEmit false
 
-# Production stage
+# ==================== PRODUCTION STAGE ====================
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Install pnpm globally
+# Enable corepack and pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy dependency files
+# Copy package.json
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
+RUN pnpm install --prod || pnpm install --prod --no-frozen-lockfile
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema
 COPY prisma ./prisma
-RUN npx prisma generate
+
+# Copy generated Prisma Client from builder
+COPY --from=builder /usr/src/app/generated ./src/generated
 
 # Copy compiled code from builder
-COPY --from=builder /app/dist ./dist
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-USER nodejs
+COPY --from=builder /usr/src/app/dist ./dist
 
 # Expose port
 EXPOSE 3000
@@ -57,5 +55,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start application
-CMD ["node", "dist/index.js"]
+# Start command with migrations
+CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
