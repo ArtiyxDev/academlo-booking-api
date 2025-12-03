@@ -21,7 +21,7 @@ COPY prisma.config.ts ./
 # Create a temporary .env file for build time (prisma generate doesn't actually connect to DB)
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client (generates in generated/prisma-client from project root)
+# Generate Prisma Client (just to validate, not used in production)
 RUN pnpm prisma generate
 
 # Copy source code
@@ -45,7 +45,7 @@ COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 # Install production dependencies only
 RUN pnpm install --prod || pnpm install --prod --no-frozen-lockfile
 
-# Install prisma CLI temporarily for migrations
+# Install prisma CLI temporarily for migrations and generation
 RUN pnpm add -D prisma
 
 # Copy Prisma schema
@@ -54,8 +54,11 @@ COPY prisma ./prisma
 # Copy prisma config
 COPY prisma.config.ts ./
 
-# Copy generated Prisma Client from builder (in project root)
-COPY --from=builder /usr/src/app/generated ./generated
+# Create a temporary .env file for generation
+RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
+
+# Generate Prisma Client in production (with correct node_modules context)
+RUN pnpm prisma generate
 
 # Copy compiled code from builder
 COPY --from=builder /usr/src/app/dist ./dist
