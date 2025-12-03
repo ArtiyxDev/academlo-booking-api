@@ -40,6 +40,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Prisma
 generated/
+generated/*
 /src/generated/
 
 # Caches
