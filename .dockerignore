@@ -1,32 +1,55 @@
+# Dependencies
 node_modules
+.pnpm-store
+
+# Build output
 dist
 build
-.git
-.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Environment variables
 .env
 .env.*
 !.env.example
-*.log
-.DS_Store
-*.md
-!README.md
-.vscode
-.idea
+
+# Prisma generated (will be generated in Docker)
+generated/
+
+# Testing
 coverage
-.next
-.nuxt
-.cache
 test
 tests
 *.test.ts
 *.spec.ts
-docker-compose.yml
-Dockerfile
-.dockerignore
-.prettierrc
-.prettierignore
-.eslintrc.json
-.eslintignore
 
-# pnpm
-.pnpm-debug.log
+# Git
+.git
+.gitignore
+
+# IDEs
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Docs
+*.md
+!README.md
+!README.*.md
+
+# CI/CD
+.github
+
+# Temp files
+*.tmp
+*.temp
