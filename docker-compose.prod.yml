@@ -47,7 +47,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - booking_network
     healthcheck:
