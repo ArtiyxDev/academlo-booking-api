@@ -1,253 +1,492 @@
 # Academlo Booking API
 
-API de reservas construida con Bun, Express, TypeScript, Prisma y PostgreSQL.
+[Versión en Español](README.es.md)
 
-## 🚀 Tecnologías
+A modern RESTful API for hotel booking management built with Node.js, Express, TypeScript, Prisma, and PostgreSQL.
 
-- **Runtime:** Bun
-- **Framework:** Express.js
-- **Lenguaje:** TypeScript
-- **ORM:** Prisma
-- **Base de datos:** PostgreSQL 18
-- **Linting:** ESLint
-- **Formateo:** Prettier
-- **Contenedores:** Docker & Docker Compose
+## 📋 Table of Contents
 
-## 📋 Prerrequisitos
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Database Setup](#-database-setup)
+- [Running the Application](#-running-the-application)
+- [API Documentation](#-api-documentation)
+- [Testing](#-testing)
+- [Docker Support](#-docker-support)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-- [Bun](https://bun.sh) (v1.0+)
-- [Docker](https://www.docker.com/) y Docker Compose
-- [Git](https://git-scm.com/)
+## ✨ Features
 
-## 🛠️ Instalación
+- **User Authentication**: JWT-based authentication with role-based access control (USER/ADMIN)
+- **User Management**: Complete CRUD operations for user profiles
+- **City Management**: Manage cities with country information
+- **Hotel Management**: Full hotel CRUD with location coordinates, pricing, and descriptions
+- **Image Management**: Handle multiple images per hotel
+- **Booking System**: Create and manage hotel reservations with check-in/check-out dates
+- **Review System**: Users can rate and review hotels (1-5 stars)
+- **Data Validation**: Request validation using Zod schemas
+- **Error Handling**: Centralized error handling with custom error classes
+- **Database Migrations**: Version-controlled database schema with Prisma
+- **Testing**: Comprehensive test suite with Jest and Supertest
+- **CORS Support**: Configurable cross-origin resource sharing
+- **Health Checks**: API health monitoring endpoint
+- **Docker Ready**: Production-ready Docker configuration
 
-1. **Clonar el repositorio:**
+## 🛠 Tech Stack
+
+- **Runtime**: Node.js 20+
+- **Language**: TypeScript 5.7
+- **Framework**: Express 5.1
+- **Database**: PostgreSQL 18
+- **ORM**: Prisma 7.0
+- **Authentication**: JWT (jsonwebtoken)
+- **Password Hashing**: bcrypt
+- **Validation**: Zod 4.1
+- **Testing**: Jest 30.2 + Supertest
+- **Development**: tsx (TypeScript runner)
+- **Package Manager**: pnpm
+- **Containerization**: Docker & Docker Compose
+
+## 🏗 Architecture
+
+The API follows a layered architecture pattern:
+
+```
+├── Controllers    → Handle HTTP requests/responses
+├── Routes         → Define API endpoints
+├── Middlewares    → Authentication, validation, error handling
+├── Validators     → Zod schemas for request validation
+├── Utils          → JWT and password utilities
+├── Config         → Database and environment configuration
+└── Prisma         → Database schema and migrations
+```
+
+## 📦 Prerequisites
+
+- Node.js >= 20.0.0
+- pnpm >= 8.0.0
+- PostgreSQL >= 13 (or use Docker)
+- Docker & Docker Compose (optional)
+
+## 🚀 Installation
+
+1. **Clone the repository**
+
 ```bash
-git clone <tu-repositorio>
+git clone <repository-url>
 cd academlo-booking-api
 ```
 
-2. **Instalar dependencias:**
+2. **Install dependencies**
+
 ```bash
-bun install
+pnpm install
 ```
 
-3. **Configurar variables de entorno:**
+3. **Set up environment variables**
+
 ```bash
+# Copy the example env file
 cp .env.example .env
 ```
 
-Edita el archivo `.env` con tus configuraciones.
+4. **Configure your `.env` file** (see [Environment Variables](#-environment-variables))
 
-4. **Levantar PostgreSQL con Docker:**
-```bash
-bun run docker:up
+## 🔐 Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-min-10-chars
+JWT_EXPIRES_IN=7d
+
+# CORS
+CORS_ORIGIN=*
 ```
 
-5. **Generar Prisma Client:**
-```bash
-bun run db:generate
+### Environment Variables for Testing
+
+Create a `.env.test` file:
+
+```env
+PORT=3001
+NODE_ENV=test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking_test
+JWT_SECRET=test-jwt-secret-key-for-testing
+JWT_EXPIRES_IN=1d
+CORS_ORIGIN=*
 ```
 
-6. **Ejecutar migraciones:**
+## 🗄 Database Setup
+
+### Using Docker (Recommended)
+
 ```bash
-bun run db:migrate
+# Start PostgreSQL container
+pnpm docker:up
+
+# View logs
+pnpm docker:logs
 ```
 
-7. **Poblar base de datos (opcional):**
-```bash
-bun run db:seed
+### Manual PostgreSQL Setup
+
+1. Install PostgreSQL
+2. Create database:
+
+```sql
+CREATE DATABASE academlo_booking;
 ```
 
-## 🎯 Scripts Disponibles
+### Run Migrations
 
-### Desarrollo
 ```bash
-bun run dev              # Inicia servidor en modo desarrollo con hot reload
-bun start                # Inicia servidor en modo producción
+# Generate Prisma Client
+pnpm db:generate
+
+# Apply migrations
+pnpm db:migrate
+
+# Or push schema (development)
+pnpm db:push
+
+# Seed database with initial data (optional)
+pnpm db:seed
 ```
 
-### Base de datos
-```bash
-bun run docker:up        # Levanta PostgreSQL en Docker
-bun run docker:down      # Detiene PostgreSQL
-bun run docker:logs      # Ver logs de PostgreSQL
+### Prisma Studio
 
-bun run db:generate      # Genera Prisma Client
-bun run db:push          # Push cambios del schema sin migraciones
-bun run db:migrate       # Crea y aplica migraciones
-bun run db:migrate:deploy # Aplica migraciones en producción
-bun run db:seed          # Ejecuta seeds
-bun run db:studio        # Abre Prisma Studio
+Access the database with a GUI:
+
+```bash
+pnpm db:studio
 ```
 
-### Código
+## ▶️ Running the Application
+
+### Development Mode
+
 ```bash
-bun run lint             # Ejecuta ESLint
-bun run lint:fix         # Corrige errores de ESLint
-bun run format           # Formatea código con Prettier
-bun run format:check     # Verifica formato sin modificar
+# Run with hot-reload
+pnpm dev
 ```
 
-### Build
+The API will be available at `http://localhost:3000`
+
+### Production Mode
+
 ```bash
-bun run build            # Construye para producción
+# Build the project
+pnpm build
+
+# Start production server
+pnpm start
 ```
 
-## 🐳 Docker
+## 📚 API Documentation
 
-### Desarrollo Local
-```bash
-# Levantar solo la base de datos
-bun run docker:up
+### Base URL
 
-# La aplicación corre en tu máquina
-bun run dev
+```
+http://localhost:3000/api
 ```
 
-### Producción (Dokploy/VPS)
+### Authentication
+
+Most endpoints require JWT authentication. Include the token in the Authorization header:
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+### Endpoints
+
+#### **Users / Authentication**
+
+| Method | Endpoint           | Auth | Description       |
+| ------ | ------------------ | ---- | ----------------- |
+| POST   | `/api/users`       | No   | Register new user |
+| POST   | `/api/users/login` | No   | User login        |
+| GET    | `/api/users`       | Yes  | Get all users     |
+| PUT    | `/api/users/:id`   | Yes  | Update user       |
+| DELETE | `/api/users/:id`   | Yes  | Delete user       |
+
+#### **Cities**
+
+| Method | Endpoint          | Auth | Description    |
+| ------ | ----------------- | ---- | -------------- |
+| GET    | `/api/cities`     | No   | Get all cities |
+| POST   | `/api/cities`     | Yes  | Create city    |
+| DELETE | `/api/cities/:id` | Yes  | Delete city    |
+
+#### **Hotels**
+
+| Method | Endpoint          | Auth | Description                   |
+| ------ | ----------------- | ---- | ----------------------------- |
+| GET    | `/api/hotels`     | No   | Get all hotels (with filters) |
+| GET    | `/api/hotels/:id` | No   | Get hotel by ID               |
+| POST   | `/api/hotels`     | Yes  | Create hotel                  |
+| PUT    | `/api/hotels/:id` | Yes  | Update hotel                  |
+| DELETE | `/api/hotels/:id` | Yes  | Delete hotel                  |
+
+#### **Images**
+
+| Method | Endpoint          | Auth | Description    |
+| ------ | ----------------- | ---- | -------------- |
+| GET    | `/api/images`     | Yes  | Get all images |
+| POST   | `/api/images`     | Yes  | Upload image   |
+| DELETE | `/api/images/:id` | Yes  | Delete image   |
+
+#### **Bookings**
+
+| Method | Endpoint            | Auth | Description       |
+| ------ | ------------------- | ---- | ----------------- |
+| GET    | `/api/bookings`     | Yes  | Get user bookings |
+| POST   | `/api/bookings`     | Yes  | Create booking    |
+| DELETE | `/api/bookings/:id` | Yes  | Delete booking    |
+
+#### **Reviews**
+
+| Method | Endpoint           | Auth | Description                |
+| ------ | ------------------ | ---- | -------------------------- |
+| GET    | `/api/reviews`     | No   | Get all reviews (by hotel) |
+| POST   | `/api/reviews`     | Yes  | Create review              |
+| PUT    | `/api/reviews/:id` | Yes  | Update review              |
+| DELETE | `/api/reviews/:id` | Yes  | Delete review              |
+
+### Example Requests
+
+#### Register User
+
 ```bash
-# Construir imagen
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "password": "securePassword123",
+    "gender": "male"
+  }'
+```
+
+#### Login
+
+```bash
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+#### Create Hotel (Authenticated)
+
+```bash
+curl -X POST http://localhost:3000/api/hotels \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{
+    "name": "Grand Hotel",
+    "description": "Luxury hotel in the city center",
+    "price": 150.00,
+    "address": "123 Main St",
+    "lat": 40.7128,
+    "lon": -74.0060,
+    "cityId": 1
+  }'
+```
+
+## 🧪 Testing
+
+The project includes comprehensive tests for all routes:
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Setup test database
+pnpm test:db:push
+```
+
+Test files are located in the `test/` directory:
+
+- `test/routes/users.test.ts`
+- `test/routes/cities.test.ts`
+- `test/routes/hotels.test.ts`
+- `test/routes/bookings.test.ts`
+- `test/routes/reviews.test.ts`
+
+## 🐳 Docker Support
+
+### Build and Run with Docker Compose
+
+```bash
+# Build and start all services
+pnpm docker:build
+pnpm docker:up
+
+# Stop all services
+pnpm docker:down
+
+# View logs
+pnpm docker:logs
+```
+
+The Docker setup includes:
+
+- PostgreSQL 18 container
+- API container with multi-stage build
+- Volume persistence for database
+- Health checks
+- Automatic Prisma migrations
+
+### Manual Docker Commands
+
+```bash
+# Build image
 docker build -t academlo-booking-api .
 
-# Ejecutar contenedor
+# Run container
 docker run -p 3000:3000 \
-  -e DATABASE_URL="tu-database-url" \
-  -e PORT=3000 \
+  -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
+  -e JWT_SECRET="your-secret" \
   academlo-booking-api
 ```
 
-### Con Docker Compose (Producción)
-Crea un `docker-compose.prod.yml`:
-```yaml
-version: '3.8'
-
-services:
-  api:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/academlo_booking
-      NODE_ENV: production
-      PORT: 3000
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  postgres:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: academlo_booking
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
-```
-
-Luego:
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 academlo-booking-api/
-├── prisma/
-│   ├── schema.prisma      # Schema de Prisma
-│   └── seed.ts           # Seeds de base de datos
 ├── src/
-│   ├── app.ts            # Configuración de Express
-│   └── index.ts          # Punto de entrada
-├── .env                  # Variables de entorno (no commitear)
-├── .env.example          # Ejemplo de variables
-├── .eslintrc.json        # Configuración ESLint
-├── .prettierrc           # Configuración Prettier
-├── docker-compose.yml    # PostgreSQL para desarrollo
-├── Dockerfile            # Imagen de producción
-├── package.json          # Dependencias y scripts
-└── tsconfig.json         # Configuración TypeScript
+│   ├── app.ts                 # Express app configuration
+│   ├── index.ts               # Application entry point
+│   ├── config/
+│   │   ├── database.ts        # Prisma client setup
+│   │   └── env.ts             # Environment validation
+│   ├── controllers/           # Request handlers
+│   │   ├── auth.controller.ts
+│   │   ├── booking.controller.ts
+│   │   ├── city.controller.ts
+│   │   ├── hotel.controller.ts
+│   │   ├── image.controller.ts
+│   │   ├── review.controller.ts
+│   │   └── user.controller.ts
+│   ├── middlewares/           # Express middlewares
+│   │   ├── auth.ts            # JWT authentication
+│   │   ├── errorHandler.ts   # Global error handling
+│   │   └── validator.ts       # Request validation
+│   ├── routes/                # API route definitions
+│   │   ├── index.ts
+│   │   ├── user.routes.ts
+│   │   ├── city.routes.ts
+│   │   ├── hotel.routes.ts
+│   │   ├── image.routes.ts
+│   │   ├── booking.routes.ts
+│   │   └── review.routes.ts
+│   ├── utils/                 # Utility functions
+│   │   ├── jwt.ts
+│   │   └── password.ts
+│   └── validators/            # Zod schemas
+│       ├── auth.validator.ts
+│       ├── booking.validator.ts
+│       ├── city.validator.ts
+│       ├── hotel.validator.ts
+│       ├── image.validator.ts
+│       ├── review.validator.ts
+│       └── users.validator.ts
+├── prisma/
+│   ├── schema.prisma          # Database schema
+│   ├── seed.ts                # Database seeding
+│   └── migrations/            # Migration files
+├── test/
+│   ├── testSetup.ts           # Test configuration
+│   ├── helper/                # Test helpers
+│   └── routes/                # Route tests
+├── generated/
+│   └── prisma-client/         # Generated Prisma client
+├── docker-compose.yml         # Docker Compose configuration
+├── Dockerfile                 # Production Docker image
+├── tsconfig.json              # TypeScript configuration
+├── jest.config.ts             # Jest configuration
+├── package.json               # Dependencies and scripts
+└── README.md                  # This file
 ```
 
-## 🗃️ Modelos de Base de Datos
+## 🔧 Available Scripts
 
-### User
-- `id`: UUID
-- `email`: String (único)
-- `name`: String
-- `password`: String (hash)
-- `role`: Role (USER, ADMIN)
-- `bookings`: Relación con Booking[]
-
-### Booking
-- `id`: UUID
-- `userId`: String (FK a User)
-- `title`: String
-- `description`: String (opcional)
-- `startDate`: DateTime
-- `endDate`: DateTime
-- `status`: BookingStatus (PENDING, CONFIRMED, CANCELLED, COMPLETED)
-
-## 🌐 Endpoints
-
-### Health Check
-```
-GET /health
-```
-
-### Root
-```
-GET /
-```
-
-## 🚀 Despliegue en Dokploy
-
-1. **Conecta tu repositorio Git** en Dokploy
-2. **Configura variables de entorno:**
-   - `DATABASE_URL`
-   - `PORT=3000`
-   - `NODE_ENV=production`
-   - `JWT_SECRET`
-
-3. **Dokploy detectará automáticamente** el `Dockerfile` y construirá la imagen
-
-4. **Ejecuta migraciones** después del primer despliegue:
 ```bash
-docker exec -it <container-id> bunx prisma migrate deploy
+# Development
+pnpm dev                 # Start dev server with hot-reload
+pnpm build               # Build for production
+pnpm start               # Start production server
+
+# Database
+pnpm db:generate         # Generate Prisma Client
+pnpm db:push             # Push schema changes (dev)
+pnpm db:migrate          # Run migrations (dev)
+pnpm db:migrate:deploy   # Deploy migrations (prod)
+pnpm db:seed             # Seed database
+pnpm db:studio           # Open Prisma Studio
+
+# Testing
+pnpm test                # Run tests
+pnpm test:watch          # Run tests in watch mode
+pnpm test:db:push        # Setup test database
+
+# Code Quality
+pnpm lint                # Lint code
+pnpm lint:fix            # Fix linting errors
+pnpm format              # Format code
+pnpm format:check        # Check formatting
+
+# Docker
+pnpm docker:up           # Start containers
+pnpm docker:down         # Stop containers
+pnpm docker:logs         # View logs
+pnpm docker:build        # Build images
 ```
 
-## 📝 Notas
+## 🤝 Contributing
 
-- El puerto por defecto es `3000`
-- PostgreSQL corre en el puerto `5432`
-- Credenciales por defecto: `postgres:postgres`
-- **Cambia las credenciales en producción**
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 🔒 Seguridad
+## 📄 License
 
-- [ ] Cambiar credenciales de PostgreSQL en producción
-- [ ] Generar `JWT_SECRET` seguro
-- [ ] Configurar CORS apropiadamente
-- [ ] Usar HTTPS en producción
-- [ ] Implementar rate limiting
+This project is licensed under the MIT License.
 
-## 📚 Recursos
+## 👥 Authors
 
-- [Bun Documentation](https://bun.sh/docs)
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [Express Documentation](https://expressjs.com/)
-- [Docker Documentation](https://docs.docker.com/)
-- [Dokploy Documentation](https://docs.dokploy.com/)
+Developed by Academlo students as part of the backend development bootcamp.
 
-## 📄 Licencia
+## 🙏 Acknowledgments
 
-Este proyecto es privado y pertenece a Academlo.
+- Express.js team for the excellent web framework
+- Prisma team for the amazing ORM
+- All contributors and students who helped build this project
+
+---
+
+**Happy Coding! 🚀**
