@@ -4,6 +4,7 @@ node_modules
 .pnp.js
 
 # Playwright
+.playwright-mcp
 .playwright/
 .playwright-mcp/
 .playwright-mcp/*

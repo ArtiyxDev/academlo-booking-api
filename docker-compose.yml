@@ -3,7 +3,7 @@ version: "3.8"
 services:
   postgres-dev:
     image: postgres:18-alpine
-    container_name: academlo-booking-db
+    container_name: academlo-booking-db-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -11,30 +11,23 @@ services:
       POSTGRES_DB: academlo_booking
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: academlo-booking-api
+  postgres-test:
+    image: postgres:18-alpine
+    container_name: academlo-booking-db-test
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres-dev:5432/academlo_booking
-    depends_on:
-      postgres-dev:
-        condition: service_healthy
-    volumes:
-      - ./prisma:/app/prisma
-
-volumes:
-  postgres_data:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: academlo_booking_test
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
