@@ -1,67 +1,78 @@
-# ==================== BUILD STAGE ====================
-FROM node:22-alpine AS builder
+# ==================== BASE STAGE ====================
+FROM node:22-alpine AS base
+WORKDIR /app
 
-WORKDIR /usr/src/app
+# ==================== DEPENDENCIES STAGE ====================
+FROM base AS deps
 
-# Enable corepack and pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy dependency files
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 
-# Install ALL dependencies
-RUN pnpm install || pnpm install --no-frozen-lockfile
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Copy Prisma schema
-COPY prisma ./prisma
+# ==================== BUILDER STAGE ====================
+FROM base AS builder
 
-# Copy prisma config
-COPY prisma.config.ts ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-# Create a temporary .env file for build time (prisma generate doesn't actually connect to DB)
+# Create temporary .env for Prisma generation
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client (just to validate, not used in production)
-RUN pnpm prisma generate
+# Generate Prisma Client
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm prisma generate && pnpm run build; \
+  elif [ -f yarn.lock ]; then yarn prisma generate && yarn build; \
+  elif [ -f package-lock.json ]; then npx prisma generate && npm run build; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Copy source code
-COPY tsconfig.json ./
-COPY src ./src
+# ==================== PRODUCTION DEPENDENCIES ====================
+FROM base AS prod-deps
 
-# Build TypeScript
-RUN pnpm tsc --noEmit false
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --prod --frozen-lockfile; \
+  elif [ -f yarn.lock ]; then yarn install --prod --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci --only=production; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
 # ==================== PRODUCTION STAGE ====================
-FROM node:22-alpine
+FROM base AS prod
 
-WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# Enable corepack and pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Copy production dependencies
+COPY --from=prod-deps /app/node_modules ./node_modules
 
-# Copy package.json
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+# Copy built application
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
-# Install production dependencies only
-RUN pnpm install --prod || pnpm install --prod --no-frozen-lockfile
+# Install prisma CLI for migrations
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm add -D prisma; \
+  elif [ -f yarn.lock ]; then yarn add -D prisma; \
+  elif [ -f package-lock.json ]; then npm install -D prisma; \
+  fi
 
-# Install prisma CLI temporarily for migrations and generation
-RUN pnpm add -D prisma
-
-# Copy Prisma schema
-COPY prisma ./prisma
-
-# Copy prisma config
-COPY prisma.config.ts ./
-
-# Create a temporary .env file for generation
+# Create temporary .env for Prisma generation
 RUN echo "DATABASE_URL=postgresql://placeholder:placeholder@placeholder:5432/placeholder" > .env
 
-# Generate Prisma Client in production (with correct node_modules context)
-RUN pnpm prisma generate
-
-# Copy compiled code from builder
-COPY --from=builder /usr/src/app/dist ./dist
+# Generate Prisma Client in production context
+RUN \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm prisma generate; \
+  elif [ -f yarn.lock ]; then yarn prisma generate; \
+  elif [ -f package-lock.json ]; then npx prisma generate; \
+  fi
 
 # Expose port
 EXPOSE 3000
@@ -70,5 +81,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start command with migrations
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
+# Start with migrations
+CMD ["sh", "-c", "if [ -f pnpm-lock.yaml ]; then pnpm prisma migrate deploy; elif [ -f yarn.lock ]; then yarn prisma migrate deploy; else npx prisma migrate deploy; fi && node dist/index.js"]
