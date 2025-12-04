@@ -40,7 +40,7 @@ Una API RESTful moderna para la gestión de reservas de hoteles construida con N
 
 ## 🛠 Stack Tecnológico
 
-- **Runtime**: Node.js 20+
+- **Runtime**: Node.js 22+
 - **Lenguaje**: TypeScript 5.7
 - **Framework**: Express 5.1
 - **Base de Datos**: PostgreSQL 18
@@ -69,90 +69,105 @@ La API sigue un patrón de arquitectura en capas:
 
 ## 📦 Requisitos Previos
 
-- Node.js >= 20.0.0
+- Node.js >= 22.0.0
 - pnpm >= 8.0.0
 - PostgreSQL >= 13 (o usar Docker)
 - Docker & Docker Compose (opcional)
 
-## 🚀 Instalación
+## 🚀 Inicio Rápido
 
-1. **Clonar el repositorio**
+### Requisitos Previos
+
+- Node.js >= 22.0.0
+- pnpm >= 8.0.0
+- Docker & Docker Compose (recomendado)
+
+### Instalación y Configuración
+
+1. **Clonar e instalar**
 
 ```bash
 git clone <repository-url>
 cd academlo-booking-api
-```
-
-2. **Instalar dependencias**
-
-```bash
 pnpm install
 ```
 
-3. **Configurar variables de entorno**
-
-```bash
-# Copiar el archivo de ejemplo
-cp .env.example .env
-```
-
-4. **Configurar tu archivo `.env`** (ver [Variables de Entorno](#-variables-de-entorno))
-
-## 🔐 Variables de Entorno
+2. **Configurar variables de entorno**
 
 Crear un archivo `.env` en el directorio raíz:
 
 ```env
-# Configuración del Servidor
 PORT=3000
 NODE_ENV=development
-
-# Base de Datos
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking
-
-# Configuración JWT
 JWT_SECRET=tu-clave-secreta-jwt-super-segura-min-10-chars
 JWT_EXPIRES_IN=7d
-
-# CORS
 CORS_ORIGIN=*
 ```
 
-### Variables de Entorno para Pruebas
-
-Crear un archivo `.env.test`:
+Crear un archivo `.env.test` para pruebas:
 
 ```env
 PORT=3001
 NODE_ENV=test
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/academlo_booking_test
 JWT_SECRET=clave-jwt-secreta-para-pruebas
 JWT_EXPIRES_IN=1d
 CORS_ORIGIN=*
 ```
 
-## 🗄 Configuración de Base de Datos
+### 🐳 Despliegue con Docker (Recomendado)
 
-### Usando Docker (Recomendado)
+#### Entorno de Desarrollo
 
 ```bash
-# Iniciar contenedor de PostgreSQL
+# Iniciar contenedores de PostgreSQL (bases de datos dev + test)
 pnpm docker:up
 
+# Generar Prisma Client
+pnpm db:generate
+
+# Aplicar migraciones de base de datos
+pnpm db:migrate
+
+# (Opcional) Poblar base de datos con datos iniciales
+pnpm db:seed
+
+# Iniciar servidor de desarrollo
+pnpm dev
+```
+
+La API estará disponible en `http://localhost:3000`
+
+#### Entorno de Producción
+
+```bash
+# Construir e iniciar todos los servicios (API + PostgreSQL)
+docker-compose -f docker-compose.prod.yml up -d --build
+
 # Ver logs
-pnpm docker:logs
+docker-compose -f docker-compose.prod.yml logs -f api
+
+# Detener servicios
+docker-compose -f docker-compose.prod.yml down
 ```
 
-### Configuración Manual de PostgreSQL
+La API de producción estará disponible en `http://localhost:3000`
 
-1. Instalar PostgreSQL
-2. Crear base de datos:
+### 💻 Despliegue Manual (Sin Docker)
 
-```sql
+1. **Instalar e iniciar PostgreSQL**
+
+```bash
+# Instalar PostgreSQL 13 o superior
+# Crear bases de datos
+psql -U postgres
 CREATE DATABASE academlo_booking;
+CREATE DATABASE academlo_booking_test;
+\q
 ```
 
-### Ejecutar Migraciones
+2. **Configurar y ejecutar la aplicación**
 
 ```bash
 # Generar Prisma Client
@@ -161,40 +176,17 @@ pnpm db:generate
 # Aplicar migraciones
 pnpm db:migrate
 
-# O hacer push del esquema (desarrollo)
-pnpm db:push
-
-# Poblar base de datos con datos iniciales (opcional)
+# Poblar base de datos (opcional)
 pnpm db:seed
-```
 
-### Prisma Studio
-
-Acceder a la base de datos con una GUI:
-
-```bash
-pnpm db:studio
-```
-
-## ▶️ Ejecutar la Aplicación
-
-### Modo Desarrollo
-
-```bash
-# Ejecutar con recarga en caliente
-pnpm dev
-```
-
-La API estará disponible en `http://localhost:3000`
-
-### Modo Producción
-
-```bash
-# Construir el proyecto
+# Construir para producción
 pnpm build
 
 # Iniciar servidor de producción
 pnpm start
+
+# O iniciar servidor de desarrollo
+pnpm dev
 ```
 
 ## 📚 Documentación de la API
@@ -312,28 +304,41 @@ curl -X POST http://localhost:3000/api/hotels \
   }'
 ```
 
-## 🧪 Pruebas
+## 🧪 Ejecutar Pruebas
 
-El proyecto incluye pruebas exhaustivas para todas las rutas:
+### Requisitos Previos para Pruebas
+
+Asegurarse de que la base de datos de prueba esté ejecutándose y configurada:
+
+```bash
+# Iniciar base de datos de prueba (usa el puerto 5433)
+pnpm docker:up
+
+# Configurar esquema de la base de datos de prueba
+pnpm test:db:push
+```
+
+### Ejecutar Pruebas
 
 ```bash
 # Ejecutar todas las pruebas
 pnpm test
 
-# Ejecutar pruebas en modo watch
+# Ejecutar pruebas en modo watch (para desarrollo)
 pnpm test:watch
-
-# Configurar base de datos de pruebas
-pnpm test:db:push
 ```
 
-Los archivos de prueba están ubicados en el directorio `test/`:
+### Cobertura de Pruebas
 
-- `test/routes/users.test.ts`
-- `test/routes/cities.test.ts`
-- `test/routes/hotels.test.ts`
-- `test/routes/bookings.test.ts`
-- `test/routes/reviews.test.ts`
+El proyecto incluye pruebas exhaustivas para todos los endpoints de la API:
+
+- **Usuarios y Autenticación**: Registro, inicio de sesión, gestión de usuarios
+- **Ciudades**: Operaciones CRUD para ciudades
+- **Hoteles**: Gestión de hoteles con filtros
+- **Reservas**: Creación y gestión de reservas
+- **Reseñas**: Reseñas y calificaciones de hoteles
+
+Ubicación de archivos de prueba: `test/routes/*.test.ts`
 
 ## 🐳 Soporte Docker
 

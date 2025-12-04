@@ -40,7 +40,7 @@ A modern RESTful API for hotel booking management built with Node.js, Express, T
 
 ## 🛠 Tech Stack
 
-- **Runtime**: Node.js 20+
+- **Runtime**: Node.js 22+
 - **Language**: TypeScript 5.7
 - **Framework**: Express 5.1
 - **Database**: PostgreSQL 18
@@ -69,90 +69,105 @@ The API follows a layered architecture pattern:
 
 ## 📦 Prerequisites
 
-- Node.js >= 20.0.0
+- Node.js >= 22.0.0
 - pnpm >= 8.0.0
 - PostgreSQL >= 13 (or use Docker)
 - Docker & Docker Compose (optional)
 
-## 🚀 Installation
+## 🚀 Quick Start
 
-1. **Clone the repository**
+### Prerequisites
+
+- Node.js >= 22.0.0
+- pnpm >= 8.0.0
+- Docker & Docker Compose (recommended)
+
+### Installation & Setup
+
+1. **Clone and install**
 
 ```bash
 git clone <repository-url>
 cd academlo-booking-api
-```
-
-2. **Install dependencies**
-
-```bash
 pnpm install
 ```
 
-3. **Set up environment variables**
-
-```bash
-# Copy the example env file
-cp .env.example .env
-```
-
-4. **Configure your `.env` file** (see [Environment Variables](#-environment-variables))
-
-## 🔐 Environment Variables
+2. **Set up environment variables**
 
 Create a `.env` file in the root directory:
 
 ```env
-# Server Configuration
 PORT=3000
 NODE_ENV=development
-
-# Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking
-
-# JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-min-10-chars
 JWT_EXPIRES_IN=7d
-
-# CORS
 CORS_ORIGIN=*
 ```
 
-### Environment Variables for Testing
-
-Create a `.env.test` file:
+Create a `.env.test` file for testing:
 
 ```env
 PORT=3001
 NODE_ENV=test
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/academlo_booking_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/academlo_booking_test
 JWT_SECRET=test-jwt-secret-key-for-testing
 JWT_EXPIRES_IN=1d
 CORS_ORIGIN=*
 ```
 
-## 🗄 Database Setup
+### 🐳 Deployment with Docker (Recommended)
 
-### Using Docker (Recommended)
+#### Development Environment
 
 ```bash
-# Start PostgreSQL container
+# Start PostgreSQL containers (dev + test databases)
 pnpm docker:up
 
+# Generate Prisma Client
+pnpm db:generate
+
+# Apply database migrations
+pnpm db:migrate
+
+# (Optional) Seed database with initial data
+pnpm db:seed
+
+# Start development server
+pnpm dev
+```
+
+The API will be available at `http://localhost:3000`
+
+#### Production Environment
+
+```bash
+# Build and start all services (API + PostgreSQL)
+docker-compose -f docker-compose.prod.yml up -d --build
+
 # View logs
-pnpm docker:logs
+docker-compose -f docker-compose.prod.yml logs -f api
+
+# Stop services
+docker-compose -f docker-compose.prod.yml down
 ```
 
-### Manual PostgreSQL Setup
+The production API will be available at `http://localhost:3000`
 
-1. Install PostgreSQL
-2. Create database:
+### 💻 Manual Deployment (Without Docker)
 
-```sql
+1. **Install and start PostgreSQL**
+
+```bash
+# Install PostgreSQL 13 or higher
+# Create databases
+psql -U postgres
 CREATE DATABASE academlo_booking;
+CREATE DATABASE academlo_booking_test;
+\q
 ```
 
-### Run Migrations
+2. **Setup and run the application**
 
 ```bash
 # Generate Prisma Client
@@ -161,40 +176,17 @@ pnpm db:generate
 # Apply migrations
 pnpm db:migrate
 
-# Or push schema (development)
-pnpm db:push
-
-# Seed database with initial data (optional)
+# Seed database (optional)
 pnpm db:seed
-```
 
-### Prisma Studio
-
-Access the database with a GUI:
-
-```bash
-pnpm db:studio
-```
-
-## ▶️ Running the Application
-
-### Development Mode
-
-```bash
-# Run with hot-reload
-pnpm dev
-```
-
-The API will be available at `http://localhost:3000`
-
-### Production Mode
-
-```bash
-# Build the project
+# Build for production
 pnpm build
 
 # Start production server
 pnpm start
+
+# OR start development server
+pnpm dev
 ```
 
 ## 📚 API Documentation
@@ -312,28 +304,41 @@ curl -X POST http://localhost:3000/api/hotels \
   }'
 ```
 
-## 🧪 Testing
+## 🧪 Running Tests
 
-The project includes comprehensive tests for all routes:
+### Prerequisites for Testing
+
+Ensure the test database is running and configured:
+
+```bash
+# Start test database (uses port 5433)
+pnpm docker:up
+
+# Setup test database schema
+pnpm test:db:push
+```
+
+### Run Tests
 
 ```bash
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
+# Run tests in watch mode (for development)
 pnpm test:watch
-
-# Setup test database
-pnpm test:db:push
 ```
 
-Test files are located in the `test/` directory:
+### Test Coverage
 
-- `test/routes/users.test.ts`
-- `test/routes/cities.test.ts`
-- `test/routes/hotels.test.ts`
-- `test/routes/bookings.test.ts`
-- `test/routes/reviews.test.ts`
+The project includes comprehensive tests for all API endpoints:
+
+- **Users & Authentication**: Registration, login, user management
+- **Cities**: CRUD operations for cities
+- **Hotels**: Hotel management with filters
+- **Bookings**: Reservation creation and management
+- **Reviews**: Hotel reviews and ratings
+
+Test files location: `test/routes/*.test.ts`
 
 ## 🐳 Docker Support
 
